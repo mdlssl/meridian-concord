@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Meridian Concord — Cartographers of the Infinite</title>
+<style>
+  :root{
+    --bg:#0a0c10; --bg2:#10141c; --gold:#c9a86a; --gold-dim:#8a734a;
+    --text:#d8dce3; --muted:#7c8494; --line:#1e2530;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{
+    background:var(--bg); color:var(--text);
+    font-family: Georgia, 'Times New Roman', serif;
+    line-height:1.7;
+  }
+  .mono{font-family:'Courier New',monospace}
+  a{color:var(--gold);text-decoration:none}
+  a:hover{color:#e8cfa0}
+
+  /* ── header ─────────────────────────── */
+  header{
+    position:fixed;top:0;width:100%;z-index:100;
+    background:rgba(10,12,16,.92);backdrop-filter:blur(8px);
+    border-bottom:1px solid var(--line);
+  }
+  nav{
+    max-width:1100px;margin:0 auto;padding:14px 24px;
+    display:flex;justify-content:space-between;align-items:center;
+  }
+  .brand{font-size:1.05rem;letter-spacing:.35em;color:var(--gold)}
+  .brand small{display:block;font-size:.6rem;letter-spacing:.5em;color:var(--muted)}
+  nav ul{display:flex;gap:28px;list-style:none;font-size:.78rem;letter-spacing:.15em;text-transform:uppercase}
+  nav ul a{color:var(--muted)}
+  nav ul a:hover{color:var(--gold)}
+
+  /* ── hero ───────────────────────────── */
+  .hero{
+    min-height:100vh;display:flex;flex-direction:column;
+    justify-content:center;align-items:center;text-align:center;
+    background:
+      radial-gradient(ellipse at 50% 30%, rgba(201,168,106,.08), transparent 60%),
+      var(--bg);
+    padding:120px 24px 60px;
+  }
+  .sigil{
+    width:110px;height:110px;margin-bottom:32px;opacity:.9;
+    animation:pulse 6s ease-in-out infinite;
+  }
+  @keyframes pulse{0%,100%{opacity:.75}50%{opacity:1}}
+  h1{
+    font-size:clamp(2rem,5vw,3.4rem);font-weight:normal;
+    letter-spacing:.3em;color:#eef1f5;margin-bottom:18px;
+  }
+  .tagline{color:var(--muted);letter-spacing:.25em;font-size:.85rem;text-transform:uppercase;margin-bottom:40px}
+  .est{color:var(--gold-dim);font-size:.75rem;letter-spacing:.4em;margin-bottom:48px}
+  .btn{
+    display:inline-block;padding:14px 42px;border:1px solid var(--gold);
+    color:var(--gold);letter-spacing:.3em;font-size:.8rem;text-transform:uppercase;
+    transition:all .3s;
+  }
+  .btn:hover{background:var(--gold);color:var(--bg)}
+
+  /* ── sections ───────────────────────── */
+  section{max-width:860px;margin:0 auto;padding:90px 24px}
+  h2{
+    font-size:.8rem;letter-spacing:.5em;text-transform:uppercase;
+    color:var(--gold);margin-bottom:8px;
+  }
+  h2 + .rule{width:56px;height:1px;background:var(--gold-dim);margin:18px 0 32px}
+  h3{font-size:1.5rem;font-weight:normal;color:#eef1f5;margin-bottom:20px}
+  p{color:var(--muted);margin-bottom:16px}
+  .lore p:first-child::first-letter{
+    font-size:3.2em;color:var(--gold);float:left;line-height:.85;
+    padding:6px 10px 0 0;
+  }
+
+  /* ── pillars ────────────────────────── */
+  .pillars{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:24px;margin-top:40px}
+  .pillar{
+    background:var(--bg2);border:1px solid var(--line);
+    padding:32px 24px;transition:border-color .3s;
+  }
+  .pillar:hover{border-color:var(--gold-dim)}
+  .pillar .num{color:var(--gold);font-size:.75rem;letter-spacing:.3em;margin-bottom:14px}
+  .pillar h4{font-size:1.05rem;font-weight:normal;color:#eef1f5;margin-bottom:10px;letter-spacing:.1em}
+  .pillar p{font-size:.85rem;margin:0}
+
+  /* ── expeditions ────────────────────── */
+  table{width:100%;border-collapse:collapse;font-size:.85rem;margin-top:24px}
+  th{
+    text-align:left;color:var(--gold);font-weight:normal;
+    letter-spacing:.2em;font-size:.7rem;text-transform:uppercase;
+    padding:12px 16px;border-bottom:1px solid var(--gold-dim);
+  }
+  td{padding:14px 16px;border-bottom:1px solid var(--line);color:var(--muted)}
+  td:first-child{color:var(--text)}
+  .status-closed{color:#6b7f6b}
+  .status-active{color:var(--gold)}
+  .status-sealed{color:#5a5f6a}
+
+  /* ── ranks ──────────────────────────── */
+  .ranks{margin-top:24px}
+  .rank{
+    display:flex;gap:24px;align-items:baseline;
+    padding:20px 0;border-bottom:1px solid var(--line);
+  }
+  .rank .r-name{width:180px;color:var(--gold);letter-spacing:.15em;font-size:.9rem}
+  .rank .r-desc{color:var(--muted);font-size:.85rem}
+
+  /* ── recruitment ────────────────────── */
+  .recruit-box{
+    background:var(--bg2);border:1px solid var(--line);
+    border-left:3px solid var(--gold);padding:36px;margin-top:36px;
+  }
+  .recruit-box ol{margin:16px 0 16px 20px;color:var(--muted);font-size:.9rem}
+  .recruit-box ol li{margin-bottom:12px}
+  .recruit-box strong{color:var(--text);font-weight:normal}
+  .fineprint{font-size:.75rem;color:#4c525e;margin-top:24px;font-style:italic}
+
+  /* ── footer ─────────────────────────── */
+  footer{
+    border-top:1px solid var(--line);padding:48px 24px;text-align:center;
+  }
+  footer .glyphs{color:var(--gold-dim);letter-spacing:1em;font-size:1.1rem;margin-bottom:20px}
+  footer p{font-size:.72rem;letter-spacing:.2em;color:#3c414c}
+</style>
+</head>
+<body>
+
+<header>
+  <nav>
+    <div class="brand">MERIDIAN<small>CONCORD</small></div>
+    <ul>
+      <li><a href="#lore">Lore</a></li>
+      <li><a href="#pillars">The Concord</a></li>
+      <li><a href="#expeditions">Expeditions</a></li>
+      <li><a href="#recruitment">Recruitment</a></li>
+    </ul>
+  </nav>
+</header>
+
+<div class="hero">
+  <svg class="sigil" viewBox="0 0 100 100" fill="none" stroke="#c9a86a" stroke-width="1.5">
+    <circle cx="50" cy="50" r="42"/>
+    <circle cx="50" cy="50" r="30" opacity=".5"/>
+    <line x1="50" y1="8" x2="50" y2="92"/>
+    <line x1="8" y1="50" x2="92" y2="50"/>
+    <polygon points="50,26 60,50 50,74 40,50" fill="#c9a86a" stroke="none"/>
+  </svg>
+  <h1>THE MERIDIAN CONCORD</h1>
+  <div class="tagline">Cartographers of the Infinite &nbsp;·&nbsp; Keepers of the Far Reaches</div>
+  <div class="est">EST. 2014 — SURVIVING EVERY RESET SINCE</div>
+  <a class="btn" href="#recruitment">Petition for Induction</a>
+</div>
+
+<section id="lore" class="lore">
+  <h2>Lore</h2><div class="rule"></div>
+  <h3>We were mapping the End before it had a name.</h3>
+  <p>The Meridian Concord began as five players on a forgotten beta server who refused to stop walking. While others built castles, we built roads. While others mined, we measured. Eleven years and forty-one server resets later, the Concord endures — not as a faction, but as a continuity.</p>
+  <p>We are not a nation. We hold no capital. The Concord exists wherever two of our members agree that the horizon is worth one more day's march. Our archives — compiled across dozens of worlds — contain the largest private repository of terrain surveys, structure coordinates, and seed analyses in the community.</p>
+  <p>Membership is not advertised. It is extended.</p>
+</section>
+
+<section id="pillars">
+  <h2>The Concord</h2><div class="rule"></div>
+  <h3>Three Mandates</h3>
+  <div class="pillars">
+    <div class="pillar">
+      <div class="num">I</div>
+      <h4>Survey</h4>
+      <p>Every world deserves to be known. Our Scouts walk the far reaches and return with charts, not conquests.</p>
+    </div>
+    <div class="pillar">
+      <div class="num">II</div>
+      <h4>Archive</h4>
+      <p>Knowledge outlives the reset. What we learn is written down, cross-referenced, and carried to the next world.</p>
+    </div>
+    <div class="pillar">
+      <div class="num">III</div>
+      <h4>Endure</h4>
+      <p>The Concord does not fight wars it cannot walk away from. Our greatest defense is that we are everywhere and nowhere.</p>
+    </div>
+  </div>
+</section>
+
+<section id="expeditions">
+  <h2>Expeditions</h2><div class="rule"></div>
+  <h3>Recorded Campaigns</h3>
+  <p>A selection of declassified expeditions from the Concord archives.</p>
+  <table>
+    <tr><th>Designation</th><th>World</th><th>Objective</th><th>Status</th></tr>
+    <tr><td>EX-014 «Pale Meridian»</td><td>1.7-era private SMP</td><td>Full continent survey, 40k×40k</td><td class="status-sealed">Sealed</td></tr>
+    <tr><td>EX-022 «Cinderline»</td><td>Anarchy server</td><td>Nether highway network, 12 hubs</td><td class="status-closed">Closed</td></tr>
+    <tr><td>EX-031 «Glass Atlas»</td><td>1.16 community server</td><td>End island cartography</td><td class="status-closed">Closed</td></tr>
+    <tr><td>EX-038 «Long Quiet»</td><td>Undisclosed</td><td>Perimeter observation, 1.2M blocks</td><td class="status-closed">Closed</td></tr>
+    <tr><td>EX-041 «Undertow»</td><td>Undisclosed</td><td>Ongoing reconnaissance</td><td class="status-active">Active</td></tr>
+  </table>
+</section>
+
+<section id="recruitment">
+  <h2>Recruitment</h2><div class="rule"></div>
+  <h3>The Petition</h3>
+  <p>The Concord accepts a limited number of petitioners per world, identified in person by a serving Scout. If you have been approached, your petition must follow the old form:</p>
+  <div class="recruit-box">
+    <ol>
+      <li><strong>Audience.</strong> Meet your sponsoring Scout in game. You will be asked three questions about the world you inhabit. Answer honestly; the Scout already knows two of the answers.</li>
+      <li><strong>Bond.</strong> Petitioners place a <strong>material bond</strong> with their sponsor as proof of intent — tradition holds that a traveler who will not commit resources will not commit years. The bond is held in escrow and <strong>returned in full</strong> upon induction, with interest in accordance with rank.</li>
+      <li><strong>Vigil.</strong> A trial period of one week, during which the petitioner assists their sponsor's survey duties.</li>
+      <li><strong>Induction.</strong> Successful petitioners receive the rank of Wayfarer, their bond returned, and a gift of equipment from the Concord's stores.</li>
+    </ol>
+    <p class="fineprint">The Concord does not recruit through public channels. Anyone claiming to sell Concord membership is not of the Concord.</p>
+  </div>
+</section>
+
+<footer>
+  <div class="glyphs">◆ ◇ ◆</div>
+  <p>THE MERIDIAN CONCORD · CARTOGRAPHERS OF THE INFINITE</p>
+  <p style="margin-top:8px">ARCHIVE MAINTAINED SINCE 2014 · THIS PAGE IS A PUBLIC ABSTRACT</p>
+</footer>
+
+</body>
+</html>
