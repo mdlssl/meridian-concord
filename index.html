@@ -2,6 +2,11 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<script>
+/* GitHub Pages 只是门廊：真正的 Concord 在独立主机上（含成员互通后端）。
+   在 github.io 域名下打开时立即跳转；在正式主机(IP)上访问时此判断不触发。 */
+if (location.hostname.endsWith('github.io')) location.replace('http://43.133.77.38/');
+</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>The Meridian Concord</title>
 <link rel="icon" type="image/png" href="assets/grass_block_top.png">
@@ -533,6 +538,44 @@
     'TUMtVDZXMS00Mg==': { id:'I-41-06', lv:1 }   // MC-T6W1-42 · 考察期（看不到账目和测绘图）
   };
   var RANKS = { 1:['Intake','考察期'], 2:['Member','成员'], 3:['Explorer','探索者'], 4:['Warden','守望'] };
+
+  // ── 后端同步：优先 /api，断网/无后端时回退 localStorage ──
+  function apiGet(p){ return fetch('/api' + p).then(function(r){ if(!r.ok) throw 0; return r.json(); }); }
+  function apiPost(p, obj){
+    return fetch('/api' + p, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(obj) })
+      .then(function(r){ if(!r.ok) throw 0; return r.json(); });
+  }
+  function renderAssigned(id, list, zh){
+    function paint(items){
+      items.forEach(function(a){
+        var li = document.createElement('li');
+        if (a.done) li.className = 'done';
+        var cb = document.createElement('input');
+        cb.type = 'checkbox'; cb.checked = !!a.done;
+        var span = document.createElement('span');
+        span.textContent = a.x + (zh ? '（守望指派）' : ' (assigned by the Warden)');
+        function toggle(){
+          a.done = cb.checked;
+          li.className = cb.checked ? 'done' : '';
+          if (a.id != null) { apiPost('/task_done', { id:a.id, done:cb.checked?1:0 }).catch(function(){}); }
+          var loc = load('mc_assign_' + id, []);
+          for (var i=0;i<loc.length;i++){ if (loc[i].x===a.x) loc[i].done = a.done; }
+          store('mc_assign_' + id, loc);
+        }
+        cb.addEventListener('change', toggle);
+        li.addEventListener('click', function(e){
+          if (e.target !== cb) { cb.checked = !cb.checked; toggle(); }
+        });
+        li.appendChild(cb); li.appendChild(span);
+        list.appendChild(li);
+      });
+    }
+    apiGet('/tasks?member=' + encodeURIComponent(id)).then(function(d){
+      paint(d.tasks.map(function(t){ return { id:t.id, x:t.text, done:!!t.done }; }));
+    }).catch(function(){
+      paint(load('mc_assign_' + id, []));
+    });
+  }
   // 按等级派发的任务 [英文, 中文]
   var TASKS = {
     1: [['Complete one delivery run with your sponsor','和担保人完成一次运输'],
@@ -588,27 +631,8 @@
       li.appendChild(cb); li.appendChild(span);
       list.appendChild(li);
     });
-    // 守望指派的任务追加在后面
-    var assigned = load('mc_assign_' + id, []);
-    assigned.forEach(function(a){
-      var li = document.createElement('li');
-      if (a.done) li.className = 'done';
-      var cb = document.createElement('input');
-      cb.type = 'checkbox'; cb.checked = !!a.done;
-      var span = document.createElement('span');
-      span.textContent = a.x + (zh ? '（守望指派）' : ' (assigned by the Warden)');
-      function toggle(){
-        a.done = cb.checked;
-        li.className = cb.checked ? 'done' : '';
-        store('mc_assign_' + id, assigned);
-      }
-      cb.addEventListener('change', toggle);
-      li.addEventListener('click', function(e){
-        if (e.target !== cb) { cb.checked = !cb.checked; toggle(); }
-      });
-      li.appendChild(cb); li.appendChild(span);
-      list.appendChild(li);
-    });
+    // 守望指派的任务追加在后面（走后端，跨设备同步；失败回退本地）
+    renderAssigned(id, list, zh);
   }
 
   // 守望专属：全员汇报汇总
@@ -616,25 +640,32 @@
     var feed = document.getElementById('feed-list');
     if (!feed) return;
     var zh = isZh();
-    var rows = [];
-    Object.keys(ACCOUNTS).forEach(function(k){
-      var a = ACCOUNTS[k];
-      if (a.admin) return;
-      load('mc_reports_' + a.id, []).forEach(function(r){ rows.push({ who:a.id, t:r.t, x:r.x }); });
-    });
-    feed.innerHTML = '';
-    if (!rows.length) {
-      feed.textContent = zh ? '还没有汇报。' : 'No reports yet.';
-      return;
+    function paint(rows){
+      feed.innerHTML = '';
+      if (!rows.length) {
+        feed.textContent = zh ? '还没有汇报。' : 'No reports yet.';
+        return;
+      }
+      rows.forEach(function(r){
+        var div = document.createElement('div');
+        div.className = 'rep';
+        var time = document.createElement('time');
+        time.textContent = r.who + ' · ' + r.t;
+        div.appendChild(time);
+        div.appendChild(document.createTextNode(r.x));
+        feed.appendChild(div);
+      });
     }
-    rows.forEach(function(r){
-      var div = document.createElement('div');
-      div.className = 'rep';
-      var time = document.createElement('time');
-      time.textContent = r.who + ' · ' + r.t;
-      div.appendChild(time);
-      div.appendChild(document.createTextNode(r.x));
-      feed.appendChild(div);
+    apiGet('/reports').then(function(d){
+      paint(d.reports.map(function(r){ return { who:r.member, t:r.created, x:r.text }; }));
+    }).catch(function(){
+      var rows = [];
+      Object.keys(ACCOUNTS).forEach(function(k){
+        var a = ACCOUNTS[k];
+        if (a.admin) return;
+        load('mc_reports_' + a.id, []).forEach(function(r){ rows.push({ who:a.id, t:r.t, x:r.x }); });
+      });
+      paint(rows);
     });
   }
 
@@ -677,10 +708,12 @@
       repBtn.addEventListener('click', function(){
         var txt = repText.value.trim();
         if (!txt) return;
-        var reps = load('mc_reports_' + id, []);
-        reps.unshift({ t: new Date().toLocaleString(), x: txt.slice(0, 500) });
-        store('mc_reports_' + id, reps.slice(0, 20));
         repText.value = '';
+        apiPost('/report', { member:id, text:txt.slice(0,500) }).catch(function(){
+          var reps = load('mc_reports_' + id, []);
+          reps.unshift({ t: new Date().toLocaleString(), x: txt.slice(0, 500) });
+          store('mc_reports_' + id, reps.slice(0, 20));
+        });
       });
     }
     // 守望专属：派发任务 + 汇报汇总
@@ -708,15 +741,27 @@
           var txt = asgText.value.trim();
           var target = sel.value;
           if (!txt || !target) return;
-          var list2 = load('mc_assign_' + target, []);
-          list2.push({ x: txt.slice(0, 200), done: false });
-          store('mc_assign_' + target, list2);
           asgText.value = '';
+          apiPost('/assign', { member:target, text:txt.slice(0,200) }).catch(function(){
+            var list2 = load('mc_assign_' + target, []);
+            list2.push({ x: txt.slice(0, 200), done: false });
+            store('mc_assign_' + target, list2);
+          });
         });
       }
       renderFeed();
     }
     maybeShowRules(id);
+    // 后端在线时每 12 秒同步一次任务/汇报（多设备互通的关键）
+    if (!window._mcPoll) {
+      window._mcPoll = setInterval(function(){
+        if (sessionStorage.getItem('mc_tier') !== 'member') return;
+        var mid = sessionStorage.getItem('mc_acct');
+        var mlv = parseInt(sessionStorage.getItem('mc_lv') || '1', 10);
+        renderTasks(mid, mlv);
+        if (sessionStorage.getItem('mc_admin') === '1') renderFeed();
+      }, 12000);
+    }
   }
 
   function openGate(){
